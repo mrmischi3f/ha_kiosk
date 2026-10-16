@@ -111,6 +111,28 @@ sealed interface HaConnection {
     data class Failed(val message: String, val authError: Boolean = false) : HaConnection
 }
 
+/** A node from the media_player/browse_media WebSocket command (playlists, albums, tracks…). */
+data class BrowseItem(
+    val title: String,
+    val mediaClass: String,
+    val contentId: String,
+    val contentType: String,
+    val canPlay: Boolean,
+    val canExpand: Boolean,
+    val thumbnail: String?,
+    val children: List<BrowseItem>,
+)
+
+/**
+ * The media player shown on the Music tab: the configured one, otherwise the Spotify entity
+ * created by HA's Spotify integration (media_player.spotify_<user>).
+ */
+fun resolveMusicPlayer(states: Map<String, HaState>, configured: String): HaState? =
+    configured.takeIf { it.isNotBlank() }?.let { states[it] }
+        ?: states.values
+            .filter { it.domain == "media_player" && it.entityId.contains("spotify") }
+            .minByOrNull { it.entityId }
+
 /** A Home Assistant service call, e.g. light.toggle with optional service data. */
 data class ServiceCall(
     val domain: String,

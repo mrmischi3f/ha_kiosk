@@ -21,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Dashboard
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ShowChart
 import androidx.compose.material3.Icon
@@ -52,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.hakiosk.data.ha.HaConnection
 import com.hakiosk.ui.dashboard.DashboardScreen
 import com.hakiosk.ui.home.HomeScreen
+import com.hakiosk.ui.music.MusicScreen
 import com.hakiosk.ui.settings.SettingsScreen
 import com.hakiosk.ui.sports.SportsScreen
 import com.hakiosk.ui.stocks.StocksScreen
@@ -64,6 +66,7 @@ import java.util.Locale
 enum class Destination(val label: String, val icon: ImageVector) {
     Dashboard("Dashboard", Icons.Filled.Dashboard),
     Home("Home", Icons.Filled.Home),
+    Music("Music", Icons.Filled.MusicNote),
     Stocks("Stocks", Icons.Filled.ShowChart),
     Sports("Scores", Icons.Filled.EmojiEvents),
     Settings("Settings", Icons.Filled.Settings),
@@ -140,6 +143,7 @@ fun KioskRoot() {
                 when (destination) {
                     Destination.Dashboard -> DashboardScreen(onNavigate = { destination = it })
                     Destination.Home -> HomeScreen(onOpenSettings = { destination = Destination.Settings })
+                    Destination.Music -> MusicScreen(onOpenSettings = { destination = Destination.Settings })
                     Destination.Stocks -> StocksScreen()
                     Destination.Sports -> SportsScreen()
                     Destination.Settings -> SettingsScreen()

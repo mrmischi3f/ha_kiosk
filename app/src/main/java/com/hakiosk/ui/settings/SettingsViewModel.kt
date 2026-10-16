@@ -23,6 +23,7 @@ data class SettingsUiState(
     val calendars: List<HaCalendar> = emptyList(),
     /** entity_id to friendly name */
     val weatherEntities: List<Pair<String, String>> = emptyList(),
+    val mediaPlayers: List<Pair<String, String>> = emptyList(),
 )
 
 class SettingsViewModel(private val container: AppContainer) : ViewModel() {
@@ -43,10 +44,16 @@ class SettingsViewModel(private val container: AppContainer) : ViewModel() {
         }
         .distinctUntilChanged()
 
+    private val mediaPlayers = ha.states
+        .map { states ->
+            states.values.filter { it.domain == "media_player" }.map { it.entityId to it.name }.sortedBy { it.second }
+        }
+        .distinctUntilChanged()
+
     val uiState: StateFlow<SettingsUiState> = combine(
-        container.settings, ha.connection, calendars, weatherEntities,
-    ) { s, c, cals, weather ->
-        SettingsUiState(s, c, cals, weather)
+        container.settings, ha.connection, calendars, weatherEntities, mediaPlayers,
+    ) { s, c, cals, weather, players ->
+        SettingsUiState(s, c, cals, weather, players)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), SettingsUiState())
 
     fun update(transform: (AppSettings) -> AppSettings) {

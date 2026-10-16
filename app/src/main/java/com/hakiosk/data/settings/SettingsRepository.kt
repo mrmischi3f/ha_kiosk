@@ -35,6 +35,7 @@ class SettingsRepository(context: Context, private val json: Json) {
         val usageLookbackDays = intPreferencesKey("usage_lookback_days")
         val calendarEntities = stringSetPreferencesKey("calendar_entities")
         val weatherEntity = stringPreferencesKey("weather_entity")
+        val musicEntity = stringPreferencesKey("music_entity")
         val favoriteEntities = stringPreferencesKey("favorite_entities")
         val watchlist = stringPreferencesKey("watchlist")
         val stockRefreshSec = intPreferencesKey("stock_refresh_sec")
@@ -72,6 +73,7 @@ class SettingsRepository(context: Context, private val json: Json) {
             usageLookbackDays = this[Keys.usageLookbackDays] ?: d.usageLookbackDays,
             calendarEntities = this[Keys.calendarEntities] ?: d.calendarEntities,
             weatherEntity = this[Keys.weatherEntity] ?: d.weatherEntity,
+            musicEntity = this[Keys.musicEntity] ?: d.musicEntity,
             favoriteEntities = this[Keys.favoriteEntities]
                 ?.let { runCatching { json.decodeFromString(stringListSerializer, it) }.getOrNull() }
                 ?: d.favoriteEntities,
@@ -97,6 +99,7 @@ class SettingsRepository(context: Context, private val json: Json) {
         this[Keys.usageLookbackDays] = s.usageLookbackDays
         this[Keys.calendarEntities] = s.calendarEntities
         this[Keys.weatherEntity] = s.weatherEntity
+        this[Keys.musicEntity] = s.musicEntity
         this[Keys.favoriteEntities] = json.encodeToString(stringListSerializer, s.favoriteEntities)
         this[Keys.watchlist] = json.encodeToString(watchlistSerializer, s.watchlist)
         this[Keys.stockRefreshSec] = s.stockRefreshSec

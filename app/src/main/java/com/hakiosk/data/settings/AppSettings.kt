@@ -25,6 +25,8 @@ data class AppSettings(
     val calendarEntities: Set<String> = emptySet(),
     /** Weather entity for the dashboard. Empty means "first weather.* entity found". */
     val weatherEntity: String = "",
+    /** Media player for the Music tab. Empty means "first media_player.spotify_* entity". */
+    val musicEntity: String = "",
     /** Entities pinned to the dashboard (long-press a tile → pin). */
     val favoriteEntities: List<String> = emptyList(),
 

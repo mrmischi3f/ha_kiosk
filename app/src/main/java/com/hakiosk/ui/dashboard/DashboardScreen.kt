@@ -31,6 +31,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.IconButton
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
@@ -58,6 +66,8 @@ import com.hakiosk.data.ha.CalendarEvent
 import com.hakiosk.data.ha.ForecastDay
 import com.hakiosk.data.ha.HaConnection
 import com.hakiosk.data.ha.HaState
+import com.hakiosk.data.ha.ServiceCall
+import com.hakiosk.ui.music.isPlayingOrPaused
 import com.hakiosk.data.settings.WatchItem
 import com.hakiosk.data.sports.Game
 import com.hakiosk.data.sports.GameState
@@ -107,6 +117,15 @@ fun DashboardScreen(onNavigate: (Destination) -> Unit) {
             Column(Modifier.weight(1f).fillMaxHeight(), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 ClockPanel(state.use24h, Modifier.fillMaxWidth())
                 WeatherPanel(state.weather, state.forecast, Modifier.fillMaxWidth())
+                state.musicPlayer?.takeIf { it.isPlayingOrPaused }?.let { player ->
+                    MiniPlayer(
+                        player = player,
+                        artUrl = state.musicArtUrl,
+                        onCommand = { service -> vm.call(player.entityId, ServiceCall("media_player", service)) },
+                        onClick = { onNavigate(Destination.Music) },
+                        modifier = Modifier.fillMaxWidth(),
+                    )
+                }
                 ScoresPanel(
                     games = state.games,
                     onClick = { onNavigate(Destination.Sports) },
@@ -595,6 +614,67 @@ private fun TickerStrip(tickers: List<Pair<WatchItem, StockQuote?>>, onClick: ()
                         }
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MiniPlayer(
+    player: HaState,
+    artUrl: String?,
+    onCommand: (String) -> Unit,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val a = player.attributes
+    Panel(modifier = modifier.clickable(onClick = onClick), contentPadding = 12) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                Modifier
+                    .size(52.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainerHighest),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(Icons.Filled.MusicNote, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (artUrl != null) {
+                    AsyncImage(
+                        model = artUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                    )
+                }
+            }
+            Spacer(Modifier.width(12.dp))
+            Column(Modifier.weight(1f)) {
+                Text(
+                    a.string("media_title") ?: player.name,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Text(
+                    a.string("media_artist") ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+            IconButton(onClick = { onCommand("media_previous_track") }) {
+                Icon(Icons.Filled.SkipPrevious, contentDescription = "Previous")
+            }
+            IconButton(onClick = { onCommand("media_play_pause") }) {
+                Icon(
+                    if (player.state == "playing") Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                    contentDescription = "Play/pause",
+                )
+            }
+            IconButton(onClick = { onCommand("media_next_track") }) {
+                Icon(Icons.Filled.SkipNext, contentDescription = "Next")
             }
         }
     }

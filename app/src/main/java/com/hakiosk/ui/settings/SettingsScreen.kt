@@ -134,6 +134,28 @@ fun SettingsScreen() {
                 }
             }
 
+            Panel(title = "Music", modifier = Modifier.fillMaxWidth()) {
+                Hint(
+                    "The Music tab controls a Home Assistant media player. Automatic picks the Spotify " +
+                        "integration's player (media_player.spotify_…). Spotify control needs Spotify Premium."
+                )
+                Spacer(Modifier.height(8.dp))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    FilterChip(
+                        selected = s.musicEntity.isBlank(),
+                        onClick = { vm.update { it.copy(musicEntity = "") } },
+                        label = { Text("Automatic (Spotify)") },
+                    )
+                    state.mediaPlayers.forEach { (id, name) ->
+                        FilterChip(
+                            selected = s.musicEntity == id,
+                            onClick = { vm.update { it.copy(musicEntity = id) } },
+                            label = { Text(name) },
+                        )
+                    }
+                }
+            }
+
             Panel(title = "Stocks", modifier = Modifier.fillMaxWidth()) {
                 Stepper(
                     "Refresh every",

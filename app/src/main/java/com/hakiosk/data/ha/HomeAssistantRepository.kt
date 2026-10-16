@@ -1,6 +1,7 @@
 package com.hakiosk.data.ha
 
 import com.hakiosk.data.array
+import com.hakiosk.data.bool
 import com.hakiosk.data.double
 import com.hakiosk.data.obj
 import com.hakiosk.data.objects
@@ -247,6 +248,42 @@ class HomeAssistantRepository(
     }
 
     // endregion
+
+    /** Turns HA-relative paths (e.g. entity_picture "/api/media_player_proxy/…") into full URLs. */
+    fun absoluteUrl(path: String?): String? {
+        if (path.isNullOrBlank()) return null
+        if (path.startsWith("http://") || path.startsWith("https://")) return path
+        val base = config?.baseUrl ?: return null
+        return base + (if (path.startsWith("/")) path else "/$path")
+    }
+
+    /** Browses a media player's library. Pass null ids for the root. */
+    suspend fun browseMedia(entityId: String, contentId: String?, contentType: String?): BrowseItem {
+        val ws = client ?: throw IOException("Not connected to Home Assistant")
+        val result = ws.command(
+            buildJsonObject {
+                put("type", "media_player/browse_media")
+                put("entity_id", entityId)
+                if (contentId != null && contentType != null) {
+                    put("media_content_id", contentId)
+                    put("media_content_type", contentType)
+                }
+            },
+            timeoutMs = 30_000,
+        ) as? JsonObject ?: throw IOException("Empty library response")
+        return parseBrowseItem(result)
+    }
+
+    private fun parseBrowseItem(o: JsonObject): BrowseItem = BrowseItem(
+        title = o.string("title") ?: "",
+        mediaClass = o.string("media_class") ?: "",
+        contentId = o.string("media_content_id") ?: "",
+        contentType = o.string("media_content_type") ?: "",
+        canPlay = o.bool("can_play") == true,
+        canExpand = o.bool("can_expand") == true,
+        thumbnail = o.string("thumbnail"),
+        children = o.array("children")?.objects()?.map { parseBrowseItem(it) } ?: emptyList(),
+    )
 
     // region REST helpers
 

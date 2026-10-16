@@ -9,6 +9,8 @@ import com.hakiosk.data.ha.ForecastDay
 import com.hakiosk.data.ha.HaConnection
 import com.hakiosk.data.ha.HaState
 import com.hakiosk.data.ha.ServiceCall
+import com.hakiosk.data.ha.resolveMusicPlayer
+import com.hakiosk.data.string
 import com.hakiosk.data.settings.WatchItem
 import com.hakiosk.data.sports.Game
 import com.hakiosk.data.sports.GameState
@@ -37,6 +39,8 @@ data class DashboardUiState(
     val favorites: List<HaState> = emptyList(),
     val favoriteIds: Set<String> = emptySet(),
     val weather: HaState? = null,
+    val musicPlayer: HaState? = null,
+    val musicArtUrl: String? = null,
     val forecast: List<ForecastDay> = emptyList(),
     val events: List<CalendarEvent> = emptyList(),
     val calendarIds: List<String> = emptyList(),
@@ -115,6 +119,7 @@ class DashboardViewModel(private val container: AppContainer) : ViewModel() {
         } else {
             lights.sortedWith(compareByDescending<HaState> { it.isActive }.thenBy { it.name })
         }
+        val player = resolveMusicPlayer(states, s.musicEntity)
         val weather = s.weatherEntity.takeIf { it.isNotBlank() }?.let { states[it] }
             ?: states.values.firstOrNull { it.domain == "weather" }
         DashboardUiState(
@@ -126,6 +131,8 @@ class DashboardViewModel(private val container: AppContainer) : ViewModel() {
             favorites = s.favoriteEntities.mapNotNull { states[it] },
             favoriteIds = s.favoriteEntities.toSet(),
             weather = weather,
+            musicPlayer = player,
+            musicArtUrl = ha.absoluteUrl(player?.attributes?.string("entity_picture")),
         ) to s.watchlist
     }
 
